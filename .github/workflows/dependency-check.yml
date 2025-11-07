@@ -1,0 +1,43 @@
+name: Daily Dependency Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run at 2 AM daily
+  workflow_dispatch:
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --json > audit-report.json
+
+      - name: Check for vulnerabilities
+        run: |
+          if [ $(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' audit-report.json) -gt 0 ]; then
+            echo "High or critical vulnerabilities found!"
+            exit 1
+          fi
+
+      - name: Create issue if vulnerabilities found
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Security Alert: Vulnerabilities Detected',
+              body: 'High or critical vulnerabilities found in dependencies. Check the workflow run for details.',
+              labels: ['security', 'urgent']
+            })

@@ -1,0 +1,23 @@
+name: Security Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GitHub Security Alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const alerts = await github.rest.dependabot.listAlertsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            
+            if (alerts.data.length > 0) {
+              console.log(`Found ${alerts.data.length} open security alerts`);
+            }

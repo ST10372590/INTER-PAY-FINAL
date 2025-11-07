@@ -1,0 +1,266 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18.x'
+  DOCKER_IMAGE: inter-pay-website
+
+jobs:
+  #Code Quality & Secret Scanning
+  code-security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: TruffleHog Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+
+      - name: GitLeaks Secret Detection
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Semgrep Security Scanner
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+            p/pci-dss
+
+  # Dependency Scanning
+  dependency-scan:
+    name: Dependency & License Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'INTER-PAYMENTS-PROJ-INSY7314'
+          path: '.'
+          format: 'HTML'
+
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --fail-on=upgradable
+
+      - name: Upload Dependency-Check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/
+
+  # Static Application Security Testing (SAST)
+  sast-scan:
+    name: SAST Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout code
+        with:
+          fetch-depth:  0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=INTER-PAYMENTS-PROJ-INSY7314
+            -Dsonar.organization=st10396650
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+         node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+        continue-on-error: true
+
+  # Build & Container Security
+  build-and-container-scan:
+    name: Build & Container Security
+    runs-on: ubuntu-latest
+    needs: [code-security-scan, dependency-scan, sast-scan]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }}:${{ github.sha }} .
+
+      - name: Trivy Container Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Anchore Container Scan
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: high
+
+  #Unit & Integration Tests
+  test:
+    name: Testing Suite
+    runs-on: ubuntu-latest
+    needs: build-and-container-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage
+
+      - name: Run security tests
+        run: npm run test:security
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/coverage-final.json
+
+  #Dynamic Application Security Testing (DAST)
+  dast-scan:
+    name: DAST - ZAP Scan
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+  #Infrastructure as Code Security
+  iac-scan:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkov IaC Scanner
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,kubernetes
+          output_format: sarif
+          output_file_path: reports/
+
+      - name: KICS Scan
+        uses: checkmarx/kics-github-action@v1.7.0
+        with:
+          path: '.'
+          output_path: 'kics-results'
+          fail_on: high
+
+  #Compliance & Policy Check
+  compliance-check:
+    name: PCI-DSS Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PCI-DSS Configuration Check
+        run: |
+          # Custom script to verify PCI-DSS requirements
+          chmod +x .github/scripts/pci-compliance-check.sh
+          ./.github/scripts/pci-compliance-check.sh
+
+      - name: License Compliance
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+
+  #Deploy (Conditional)
+  deploy:
+    name: Deploy to Environment
+    runs-on: ubuntu-latest
+    needs: [test, dast-scan, compliance-check]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          # Add your deployment steps here
+
+      - name: Security notification
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+         payload: |
+          {
+            "text": "Deployment Status: ${{ job.status }}",
+            "blocks": [
+             {
+               "type": "section",
+               "text": {
+                "type": "mrkdwn",
+                "text": "*Production deployment completed with security checks*\nStatus: ${{ job.status }}\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}"
+               }
+            }
+           ]
+           }
+        env:
+         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

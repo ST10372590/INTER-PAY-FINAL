@@ -1,0 +1,425 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #2c3e50;
+  color: white;
+}
+
+.nav-left,
+.nav-center,
+.nav-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.nav-left {
+  justify-content: flex-start;
+}
+
+.nav-center {
+  justify-content: center;
+}
+
+.nav-right {
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.nav-center a {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+
+/* --- Container & Layout --- */
+/* Centers the history content and restricts max width (MDN, 2024) */
+.history-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header styling for title and description */
+.header {
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  font-size: 28px;
+  color: #222; /* Dark text for readability */
+}
+
+.header p {
+  color: #666; /* Secondary text color */
+  font-size: 15px;
+}
+
+/* --- Loading Section --- */
+/* Flexbox used to center loader and text horizontally (CSS Tricks, 2024) */
+.loading-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 40px 0;
+}
+
+/* Loader styling and animation for spinning effect */
+.loader {
+  border: 3px solid #eee; /* Light gray border */
+  border-top: 3px solid #3498db; /* Blue top border to indicate rotation */
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite; /* Infinite spin animation */
+}
+
+/* Keyframes for spinning loader */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Error Message Styling --- */
+/* Red background and text for errors (MDN, 2025) */
+.error-message {
+  background-color: #fdecea;
+  color: #b71c1c;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #f5c2c0;
+  margin-bottom: 20px;
+}
+
+/* --- Empty Transactions Section --- */
+.no-transactions {
+  text-align: center;
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 30px;
+}
+
+/* Button to redirect user to make first payment */
+.make-payment-btn {
+  display: inline-block;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: background 0.3s ease; /* Smooth hover transition */
+}
+
+.make-payment-btn:hover {
+  background-color: #0056b3;
+}
+
+/* --- Table Container --- */
+/* White card with shadow for transaction table */
+.table-container {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow-x: auto; /* Allow horizontal scroll on smaller screens */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Transaction Table --- */
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse; /* Remove double borders */
+}
+
+.transaction-table th, .transaction-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.transaction-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.transaction-table tr:hover {
+  background-color: #f5f5f5; /* Highlight row on hover */
+}
+
+/* --- Transaction Status Badges --- */
+/* Generic badge styling */
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Status-specific colors for better UX (W3Schools, 2023) */
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-verified,
+.status-completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-submitted {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.status-failed {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-default {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+/* --- Table Summary --- */
+.summary {
+  padding: 10px 16px;
+  background-color: #f9fafb;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+  color: #555;
+}
+
+
+/* --- Layout & Page Centering --- */
+/* Flexbox used for centering content both vertically and horizontally (W3Schools, 2023) */
+.make-payment-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f5f7fa; /* Light gray background for visual separation */
+  padding: 20px;
+}
+
+/* --- Form Container --- */
+/* Box-shadow and border-radius for card-like appearance (MDN, 2025) */
+.make-payment-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 700px; /* Increased width to avoid overlapping */
+  max-width: 95%;
+  padding: 30px 40px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+.make-payment-container h2 {
+  text-align: center;
+  color: #2a2a2a;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* --- Form Styling --- */
+/* Flexbox for vertical spacing between inputs (CSS Tricks, 2024) */
+.make-payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* --- Grid Layout for paired inputs --- */
+/* CSS Grid for responsive two-column layout (MDN, n.d.) */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Flexible columns */
+  gap: 20px;
+}
+
+/* --- Form Group --- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+/* --- Input & Select --- */
+/* Styled input fields with hover/focus effects for accessibility (W3Schools, 2023) */
+input,
+select {
+  padding: 10px 12px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #007bff; /* Highlight on focus for usability */
+}
+
+/* --- Error Styling --- */
+input.error,
+select.error {
+  border-color: #d9534f; /* Red border for invalid inputs */
+}
+
+.error-text {
+  color: #d9534f;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* --- Alerts --- */
+/* Success and error message styling for user feedback (MDN, 2025) */
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* --- Submit Button --- */
+/* Button styling with hover transition for visual feedback (W3Schools, 2023) */
+.submit-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* --- Responsive Adjustments --- */
+/* Media query to make form stack on smaller screens (MDN, 2025) */
+@media (max-width: 768px) {
+  .make-payment-container {
+    width: 95%;
+    padding: 25px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr; /* Stack on smaller screens */
+  }
+}
+
+/* 
+------------------------------------------------------------
+References
+------------------------------------------------------------
+CSS Tricks. 2024. A Complete Guide to Flexbox, n.d. [Online]. Available at: https://css-tricks.com/snippets/css/a-guide-to-flexbox [Accessed 9 October 2025]
+MDN. 2025. CSS Grid Layout. Mozilla Developer Network, n.d. [Online]. Available at: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout [Accessed 10 October 2025] 
+MDN. 2025. Styling forms. Mozilla Developer Network, n.d. [Online]. Available at: https://developer.mozilla.org/en-US/docs/Learn/Forms [Accessed 10 October 2025]
+W3Schools. 2023. CSS Input Styling, n.d. [Online]. Available at: https://www.w3schools.com/css/css_form.asp [Accessed 9 October 2025]
+CSS Tricks. 2024. A Complete Guide to Flexbox, n.d. [Online]. Available at: https://css-tricks.com/snippets/css/a-guide-to-flexbox [Accessed 9 October 2025]
+MDN. 2025. CSS Grid Layout. Mozilla Developer Network, n.d. [Online]. Available at: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout [Accessed 10 October 2025] 
+MDN. 2025. Styling forms. Mozilla Developer Network, n.d. [Online]. Available at: https://developer.mozilla.org/en-US/docs/Learn/Forms [Accessed 10 October 2025]
+W3Schools. 2023. CSS Input Styling, n.d. [Online]. Available at: https://www.w3schools.com/css/css_form.asp [Accessed 9 October 2025]
+*/
+
