@@ -68,9 +68,11 @@ The backend includes strong encryption, JWT authentication, and Mongoose-based d
 - **Transaction History** — Track all transactions and statuses.  
 - **Encrypted Data** — All payment and user data encrypted before storage.    
 
-### Employee Features (To be implemented)
-- **Employee Authentication** — Secure login for employees  
-- **Transaction Review** — Review and verify pending transactions
+### Employee Features
+- **Employee Dashboard** -  transaction processing statuss
+- **Employee Profile** — Displays comprehensive employee personal information, account status, role 
+permissions, and security guidelines 
+- **Customer Transactions - Employee View** - Review and verify pending transactions
 
 
 ## Implemented Features
